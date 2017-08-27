@@ -1,9 +1,8 @@
 #pragma once 
 
-#define f_type double
-
 #include <stdexcept>
-#include <Eigen/Core>
+#include <functional>
+#include "types.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -11,12 +10,6 @@
 
 namespace dmaps
 {
-    using matrix_t = Eigen::Matrix<f_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>; 
-    using vector_t = Eigen::Matrix<f_type, Eigen::Dynamic, 1>;
-    using vector3_t = Eigen::Matrix<f_type, 3, 1>;
-    using matrix3_t = Eigen::Matrix<f_type, Eigen::Dynamic, 3, Eigen::RowMajor>;
-    using matrix33_t = Eigen::Matrix<f_type, 3, 3, Eigen::RowMajor>;
-    
     class distance_matrix
     {
     private:
@@ -56,6 +49,6 @@ namespace dmaps
 
         const matrix_t& get_distances();
 
-        void compute();
+        void compute(const std::function<f_type(vector_t, vector_t, const vector_t&)>&);
     };
 }

@@ -5,6 +5,8 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/include/pybind11/include")
 set(SOURCES 
 	dmaps/distance_matrix.cpp
+	dmaps/metrics.cpp
+	dmaps/bindings.cpp
 )
 
 find_package(OpenMP QUIET)
