@@ -51,23 +51,56 @@ namespace dmaps
 
 	void distance_matrix::compute()
 	{
-		d_ = matrix_t::Zero(x_.rows(), x_.rows());
-		for(int i = 0; i < d_.rows() - 1; ++i)
-		{
-			for(int j = i + 1; j < d_.rows(); ++j)
+        int n = x_.rows();
+        int m = n/2 - 1 + n%2;
+        d_ = matrix_t::Zero(n, n);
+        
+        #ifdef _OPENMP
+        #pragma omp parallel for schedule(static)
+        for(int i = 0; i < n; ++i)
+        {
+			for(int j = 0; j < m; ++j)
 			{
-				d_(i,j) = rmsd(x_.row(i), x_.row(j), w_);
-				d_(j,i) = d_(i,j);
-			}
-		}
+                int ii = i, jj = j + 1;
+                if(j < i)
+                {
+                    ii = n - 1 - i; 
+                    jj = n - 1 - j;
+                }
+
+				d_(ii,jj) = rmsd(x_.row(ii), x_.row(jj), w_);
+				d_(jj,ii) = d_(ii,jj);
+            }
+        }
+
+        if(n % 2 == 0)
+        {
+            #pragma omp parallel for schedule(static)        
+            for(int i = 0; i < n/2; ++i)
+            {
+                d_(i,n/2) = rmsd(x_.row(i), x_.row(n/2), w_);
+                d_(n/2,i) = d_(i,n/2);
+            }
+        }
+        #else
+        for(int i = 0; i < n - 1; ++i)
+            for(int j = i + 1; j < n; ++j)
+            {
+                d_(i,j) = rmsd(x_.row(i), x_.row(j), w_);
+                d_(j,i) = d_(i,j);
+            }
+        #endif
 	}
 }
 
 PYBIND11_MODULE(dmaps, m)
 {
 	py::class_<dmaps::distance_matrix>(m, "DistanceMatrix")
-		.def(py::init<dmaps::matrix_t>())
-		.def(py::init<dmaps::matrix_t, dmaps::vector_t>())
+        .def(py::init<dmaps::matrix_t, int>(), 
+            py::arg(), py::arg("num_threads") = 0)
+        .def(py::init<dmaps::matrix_t, dmaps::vector_t, int>(),
+            py::arg(), py::arg("weights"), py::arg("num_threads") = 0
+        )
 		.def("get_coordinates", &dmaps::distance_matrix::get_coordinates)
 		.def("get_distances", &dmaps::distance_matrix::get_distances)
 		.def("compute", &dmaps::distance_matrix::compute);
