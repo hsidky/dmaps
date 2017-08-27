@@ -57,13 +57,17 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
 setup(
-    name='cmake_example',
+    name='dmaps',
     version='0.0.1',
-    author='Dean Moldovan',
-    author_email='dean0x7d@gmail.com',
-    description='A test project using pybind11 and CMake',
+    author='Hythem Sidky',
+    author_email='sidky@outlook.com',
+    description='C++ Accelerated Python Diffusion Map Library',
     long_description='',
-    ext_modules=[CMakeExtension('cmake_example')],
+    ext_modules=[CMakeExtension('dmaps')],
     cmdclass=dict(build_ext=CMakeBuild),
-    zip_safe=False,
+    packages=['dmaps'],
+    install_requires=[
+        'numpy'
+    ],
+    zip_safe=False
 )
