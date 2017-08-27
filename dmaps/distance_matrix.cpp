@@ -1,7 +1,73 @@
+#include <iostream>
+#include <fstream>
 #include "distance_matrix.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace dmaps
 {
+    distance_matrix::distance_matrix(const matrix_t& x, int num_threads) : 
+    x_(x)
+    {
+        #ifdef _OPENMP
+        if(num_threads) omp_set_num_threads(num_threads);
+        #endif
+
+        w_ = vector_t::Ones(x_.cols()/3);
+    }
+
+    distance_matrix::distance_matrix(const matrix_t& x, const vector_t& w, int num_threads) : 
+    x_(x), w_(w)
+    {
+        if(x_.cols()/3 != w.size())
+            throw std::runtime_error("Length of weights vector must match dimension of coordinates.");
+
+        #ifdef _OPENMP
+        if(num_threads) omp_set_num_threads(num_threads);
+        #endif
+    }
+
+    // Based on https://stackoverflow.com/questions/25389480    
+    distance_matrix::distance_matrix(const std::string& filename, int num_threads)
+    {
+        #ifdef _OPENMP
+        if(num_threads) omp_set_num_threads(num_threads);
+        #endif
+
+        std::ifstream in(filename, std::ios::in | std::ios::binary);
+        
+        // Read in distance matrix. 
+        {
+            matrix_t::Index rows = 0, cols = 0;
+            in.read((char*) (&rows), sizeof(matrix_t::Index));
+            in.read((char*) (&cols), sizeof(matrix_t::Index));
+            d_.resize(rows, cols);
+            in.read((char*) d_.data(), d_.size()*sizeof(matrix_t::Scalar));
+        }
+        
+        // Read in weights vector. 
+        {
+            matrix_t::Index rows = 0, cols = 0;
+            in.read((char*) (&rows), sizeof(matrix_t::Index));
+            in.read((char*) (&cols), sizeof(matrix_t::Index));
+            w_.resize(rows, cols);
+            in.read((char*) w_.data(), w_.size()*sizeof(matrix_t::Scalar));
+        }
+        
+        // Read in coordinates matrix. 
+        {
+            matrix_t::Index rows = 0, cols = 0;
+            in.read((char*) (&rows), sizeof(matrix_t::Index));
+            in.read((char*) (&cols), sizeof(matrix_t::Index));
+            x_.resize(rows, cols);
+            in.read((char*) x_.data(), x_.size()*sizeof(matrix_t::Scalar));
+        }
+        
+        in.close();
+    }
+    
 	const matrix_t& distance_matrix::get_coordinates()
 	{
 		return x_;
@@ -53,5 +119,37 @@ namespace dmaps
                 d_(j,i) = d_(i,j);
             }
         #endif
-	}
+    }
+    
+    // Based on https://stackoverflow.com/questions/25389480
+    void distance_matrix::save(const std::string& filename)
+    {
+        std::ofstream out(filename, std::ios::out | std::ios::binary | std::ios::trunc);
+        
+        // Write out distance matrix. 
+        {
+            matrix_t::Index rows = d_.rows(), cols = d_.cols();
+            out.write((char*) (&rows), sizeof(matrix_t::Index));
+            out.write((char*) (&cols), sizeof(matrix_t::Index));
+            out.write((char*) d_.data(), d_.size()*sizeof(matrix_t::Scalar));
+        }
+        
+        // Write out weights vector.
+        {
+            vector_t::Index rows = w_.rows(), cols = w_.cols(); 
+            out.write((char*) (&rows), sizeof(vector_t::Index));
+            out.write((char*) (&cols), sizeof(vector_t::Index));
+            out.write((char*) w_.data(), w_.size()*sizeof(vector_t::Scalar));
+        }
+        
+        // Write out coordinates matrix.
+        {
+            matrix_t::Index rows = x_.rows(), cols = x_.cols(); 
+            out.write((char*) (&rows), sizeof(matrix_t::Index));
+            out.write((char*) (&cols), sizeof(matrix_t::Index));
+            out.write((char*) x_.data(), x_.size()*sizeof(matrix_t::Scalar));
+        }
+
+        out.close();
+    }
 }

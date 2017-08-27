@@ -13,12 +13,16 @@ PYBIND11_MODULE(dmaps, m)
             py::arg(), py::arg("num_threads") = 0)
         .def(py::init<dmaps::matrix_t, dmaps::vector_t, int>(),
             py::arg(), py::arg("weights"), py::arg("num_threads") = 0
-        )
+		)
+		.def(py::init<const std::string&, int>(),
+			py::arg(), py::arg("num_threads") = 0
+		)
 		.def("get_coordinates", &dmaps::distance_matrix::get_coordinates)
 		.def("get_distances", &dmaps::distance_matrix::get_distances)
 		.def("compute", &dmaps::distance_matrix::compute,
 			py::arg("metric") = py::cpp_function(&dmaps::rmsd)
-		);
+		)
+		.def("save", &dmaps::distance_matrix::save);
 	
 	py::module m2 = m.def_submodule("metrics");
 	m2.def("rmsd", &dmaps::rmsd);
