@@ -1,6 +1,5 @@
 #pragma once 
 
-#include <stdexcept>
 #include <functional>
 #include <string>
 #include "types.h"
@@ -26,12 +25,12 @@ namespace dmaps
 
         distance_matrix(const std::string& filename, int num_threads = 1);
 
-        const matrix_t& get_coordinates(); 
+        const matrix_t& get_coordinates() const; 
 
-        const matrix_t& get_distances();
+        const matrix_t& get_distances() const;
 
         void compute(const std::function<f_type(vector_t, vector_t, const vector_t&)>&);
 
-        void save(const std::string& filename);
+        void save(const std::string& filename) const;
     };
 }

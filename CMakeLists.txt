@@ -4,6 +4,7 @@ project(dmaps)
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/include/pybind11/include")
 set(SOURCES 
+	dmaps/diffusion_map.cpp
 	dmaps/distance_matrix.cpp
 	dmaps/metrics.cpp
 	dmaps/bindings.cpp

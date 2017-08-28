@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <stdexcept>
 #include "distance_matrix.h"
 
 #ifdef _OPENMP
@@ -22,7 +23,7 @@ namespace dmaps
     x_(x), w_(w)
     {
         if(x_.cols()/3 != w.size())
-            throw std::runtime_error("Length of weights vector must match dimension of coordinates.");
+            throw std::invalid_argument("Length of weights vector must match dimension of coordinates.");
 
         #ifdef _OPENMP
         if(num_threads) omp_set_num_threads(num_threads);
@@ -68,12 +69,12 @@ namespace dmaps
         in.close();
     }
     
-	const matrix_t& distance_matrix::get_coordinates()
+	const matrix_t& distance_matrix::get_coordinates() const
 	{
 		return x_;
 	}
 
-	const matrix_t& distance_matrix::get_distances()
+	const matrix_t& distance_matrix::get_distances() const
 	{
 		return d_;
 	}
@@ -122,7 +123,7 @@ namespace dmaps
     }
     
     // Based on https://stackoverflow.com/questions/25389480
-    void distance_matrix::save(const std::string& filename)
+    void distance_matrix::save(const std::string& filename) const
     {
         std::ofstream out(filename, std::ios::out | std::ios::binary | std::ios::trunc);
         
