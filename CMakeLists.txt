@@ -7,7 +7,6 @@ set(SOURCES
 	dmaps/diffusion_map.cpp
 	dmaps/distance_matrix.cpp
 	dmaps/metrics.cpp
-	dmaps/bindings.cpp
 )
 
 find_package(OpenMP QUIET)
@@ -18,4 +17,4 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 
 add_subdirectory(include/pybind11)
-pybind11_add_module(dmaps ${SOURCES})
+pybind11_add_module(dmaps ${SOURCES} dmaps/bindings.cpp)

@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <Eigen/Core>
 #include <cmath>
+#include <iostream>
 #include <spectra/SymEigsSolver.h>
 #include "diffusion_map.h"
 #include "distance_matrix.h"
@@ -25,8 +26,8 @@ namespace dmaps
     {
         if(d_.cols() != d_.rows())
             throw std::invalid_argument("Distance matrix must be square.");
-    
-        if(w_.size() == 0)
+        
+            if(w_.size() == 0)
             w_ = vector_t::Ones(d_.cols());
         else if(w_.size() != d_.cols())
             throw std::invalid_argument("Weights vector length must match distance matrix size.");
@@ -93,7 +94,7 @@ namespace dmaps
         return dvals_;
     }
 
-    const matrix_t& diffusion_map::get_kernel_matrix() const
+    const matrixc_t& diffusion_map::get_kernel_matrix() const
     {
         return k_;
     }

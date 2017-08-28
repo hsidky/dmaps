@@ -21,7 +21,7 @@ namespace dmaps
         vector_t dvals_; 
 
         // Kernel matrix.
-        matrix_t k_; 
+        matrixc_t k_; 
 
         // Kernel bandwidth(s).
         vector_t eps_;
@@ -43,6 +43,6 @@ namespace dmaps
 
         const matrix_t& get_eigenvectors() const;
         const vector_t& get_eigenvalues() const;
-        const matrix_t& get_kernel_matrix() const;        
+        const matrixc_t& get_kernel_matrix() const;        
     };
 }
