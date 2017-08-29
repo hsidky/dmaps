@@ -1,27 +1,38 @@
 #include <stdexcept>
-#include <Eigen/Core>
 #include <cmath>
-#include <iostream>
-#include <pybind11/pybind11.h>
+#include <algorithm>
+#include <numeric>
+#include <Eigen/Core>
 #include <spectra/SymEigsSolver.h>
 #include "diffusion_map.h"
 #include "distance_matrix.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace Spectra;
-namespace py = pybind11;
 
 namespace dmaps
 {
-    diffusion_map::diffusion_map(const distance_matrix& dm, const vector_t& w) : 
+    diffusion_map::diffusion_map(const distance_matrix& dm, const vector_t& w, int num_threads) : 
     d_(dm.get_distances()), w_(w)
     {
         check_params();
+        
+        #ifdef _OPENMP
+        if(num_threads) omp_set_num_threads(num_threads);
+        #endif
     }
 
-    diffusion_map::diffusion_map(const matrix_t& d, const vector_t& w) : 
+    diffusion_map::diffusion_map(const matrix_t& d, const vector_t& w, int num_threads) : 
     d_(d), w_(w)
     {
-        check_params();        
+        check_params();
+        
+        #ifdef _OPENMP
+        if(num_threads) omp_set_num_threads(num_threads);
+        #endif     
     }
 
     void diffusion_map::check_params()
@@ -29,7 +40,7 @@ namespace dmaps
         if(d_.cols() != d_.rows())
             throw std::invalid_argument("Distance matrix must be square.");
         
-            if(w_.size() == 0)
+        if(w_.size() == 0)
             w_ = vector_t::Ones(d_.cols());
         else if(w_.size() != d_.cols())
             throw std::invalid_argument("Weights vector length must match distance matrix size.");
@@ -57,7 +68,53 @@ namespace dmaps
 
     f_type diffusion_map::sum_similarity_matrix(f_type eps) const
     {
-        return (-0.5/eps*d_.array().square()).exp().sum();
+        matrix_t wwt = w_*w_.transpose();
+        return ((-0.5/eps*d_.array().square()).exp()*wwt.array()).sum();
+    }
+
+    void diffusion_map::estimate_local_scale(int k)
+    {
+        eps_ = vector_t::Ones(d_.rows());
+
+        // Default choice of k.
+        if(k == 0) k = static_cast<int>(std::sqrt(d_.rows()));
+
+        // Set local epsilon scale for each entry.
+        #ifdef _OPENMP
+        #pragma omp parallel
+        #endif
+        {
+            // Create sort indexer.
+            std::vector<size_t> idx(d_.rows());
+            std::iota(std::begin(idx), std::end(idx), static_cast<size_t>(0));
+
+            #ifdef _OPENMP
+            #pragma for schedule(static)
+            #endif
+            for(size_t i = 0; i < eps_.size(); ++i)
+            {
+                const vector_t& dist = d_.row(i);
+
+                // Get indices of sorted distances (ascending).
+                std::sort(std::begin(idx), std::end(idx),
+                    [&](size_t a, size_t b) { return dist[a] < dist[b]; }
+                );
+            
+                // Sum and determine weight.
+                // We skip the first element which is itself.
+                f_type sum = 0.;
+                for(size_t j = 1; j < idx.size(); ++j)
+                {
+                    sum += w_[idx[j]];
+                    // Break at k value.
+                    if(sum >= k)
+                    {
+                        eps_[i] = dist[idx[j]];
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     void diffusion_map::compute(int n)
@@ -65,11 +122,12 @@ namespace dmaps
         if(eps_.size() == 0)
             throw std::runtime_error("Kernel bandwidth must be defined before computing diffusion coordinates.");
         
-        // Compute similarity matrix and row normalze
+        // Compute similarity matrix and row normalize
         // to get right stochastic matrix.
         k_ = -0.5*d_.cwiseProduct(d_);
         k_.array() /= (eps_*eps_.transpose()).array();
-        k_.array() = k_.array().exp(); 
+        k_.array() = k_.array().exp();
+        k_.array() *= (w_*w_.transpose()).array();
         vector_t rsum =  k_.rowwise().sum();
         k_ = rsum.asDiagonal().inverse()*k_;
         

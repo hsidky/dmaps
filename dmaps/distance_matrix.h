@@ -19,11 +19,11 @@ namespace dmaps
         matrix_t x_;
     
     public:
-        distance_matrix(const matrix_t& x, int num_threads = 1);
+        distance_matrix(const matrix_t& x, int num_threads = 0);
 
-        distance_matrix(const matrix_t& x, const vector_t& w, int num_threads = 1);
+        distance_matrix(const matrix_t& x, const vector_t& w, int num_threads = 0);
 
-        distance_matrix(const std::string& filename, int num_threads = 1);
+        distance_matrix(const std::string& filename, int num_threads = 0);
 
         const matrix_t& get_coordinates() const; 
 
