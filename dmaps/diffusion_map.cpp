@@ -2,11 +2,13 @@
 #include <Eigen/Core>
 #include <cmath>
 #include <iostream>
+#include <pybind11/pybind11.h>
 #include <spectra/SymEigsSolver.h>
 #include "diffusion_map.h"
 #include "distance_matrix.h"
 
 using namespace Spectra;
+namespace py = pybind11;
 
 namespace dmaps
 {
@@ -65,14 +67,16 @@ namespace dmaps
         
         // Compute similarity matrix and row normalze
         // to get right stochastic matrix.
-        k_.noalias() = (-0.5*d_.array().square()/(eps_*eps_.transpose()).array()).exp().matrix();
+        k_ = -0.5*d_.cwiseProduct(d_);
+        k_.array() /= (eps_*eps_.transpose()).array();
+        k_.array() = k_.array().exp(); 
         vector_t rsum =  k_.rowwise().sum();
         k_ = rsum.asDiagonal().inverse()*k_;
-
+        
         // Define eigensolver.
         DenseSymMatProd<f_type> op(k_);
-        SymEigsSolver<f_type, LARGEST_ALGE, DenseSymMatProd<f_type>> eigs(&op, n, 6);
-
+        SymEigsSolver<f_type, LARGEST_ALGE, DenseSymMatProd<f_type>> eigs(&op, n, 2*n);
+        
         // Solve. 
         eigs.init();
         eigs.compute();
