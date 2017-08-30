@@ -73,7 +73,7 @@ plt.ylabel('$\Psi_3$')
 ```
 
 The above code produces the diffusion map below.
-<img src="https://preview.ibb.co/gnG6Wk/diffswiss.png" alt="diffswiss" border="0" />
+<img src="https://image.ibb.co/jJGqrk/diffswiss.png" alt="diffswiss" border="0" />
 
 That's pretty much it! Be sure to take a look in the examples folder for more sophisticated
 applications.
