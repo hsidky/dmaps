@@ -44,8 +44,40 @@ small number. *Eigen* also provides SIMD instructions for efficient linear algeb
 
 ## Examples 
 
-Below is an example that demonstrates basic usage of **DMAPS** on the Swiss roll. 
-For more detailed examples see the examples folder. 
+Below is an example that demonstrates basic usage of **DMAPS** on the classic 
+Swiss roll dataset. For more detailed examples see the examples folder. 
+
+```python 
+import dmaps
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Assume we have the following numpy arrays:
+# coords contains the [n, 3] generated coordinates for the Swiss roll dataset.
+# color contains the position of the points along the main dimension of the roll. 
+dist = dmaps.DistanceMatrix(coords)
+dist.compute(metric=dmaps.metrics.euclidean)
+
+# Compute top three eigenvectors. 
+# Here we assume a good value for the kernel bandwidth is known.
+dmap = dmaps.DiffusionMap(dist)
+dmap.set_kernel_bandwidth(3)
+dmap.compute(3)
+
+# Plot result. Scale by top eigenvector.
+v = dmap.get_eigenvectors()
+w = dmap.get_eigenvalues()
+plt.scatter(v[:,1]/v[:,0], v[:,2]/v[:,0], c=color)
+plt.xlabel('$\Psi_2$')
+plt.ylabel('$\Psi_3$')
+```
+
+The above code produces the diffusion map below.
+<img src="https://preview.ibb.co/gnG6Wk/diffswiss.png" alt="diffswiss" border="0" />
+
+That's pretty much it! Be sure to take a look in the examples folder for more sophisticated
+applications.
+
 
 ## <a name="ack"></a> Acknowledgements 
 
