@@ -7,21 +7,27 @@ using namespace Eigen;
 
 namespace dmaps
 {
-	f_type rmsd(vector_t ri, vector_t rj, const vector_t& w)
+	f_type rmsd(const vector_t& ri, const vector_t& rj, const vector_t& w)
 	{
+		// Copy vectors for manipulation.
+		vector_t r1 = ri, r2 = rj;
+
+		// Get subset of weights just to make sure the size is proper. 
+		const vector_t& ws = w.segment(0, ri.size()/3);
+
 		// Maps for ease of use.
-		Map<matrix3_t> xi(ri.data(), ri.size()/3, 3);
-		Map<matrix3_t> xj(rj.data(), rj.size()/3, 3);
+		Map<matrix3_t> xi(r1.data(), r1.size()/3, 3);
+		Map<matrix3_t> xj(r2.data(), r2.size()/3, 3);
 
 		// Subtract out centers of mass.
-		f_type wtot = w.sum();
-		vector3_t comi = (w.asDiagonal()*xi).colwise().sum()/wtot;
-		vector3_t comj = (w.asDiagonal()*xj).colwise().sum()/wtot;
+		f_type wtot = ws.sum();
+		vector3_t comi = (ws.asDiagonal()*xi).colwise().sum()/wtot;
+		vector3_t comj = (ws.asDiagonal()*xj).colwise().sum()/wtot;
 		xi.rowwise() -= comi.transpose(); 
 		xj.rowwise() -= comj.transpose();
 
 		// SVD of covariance matrix.
-		matrix_t cov = xi.transpose()*w.asDiagonal()*xj;
+		matrix_t cov = xi.transpose()*ws.asDiagonal()*xj;
 		JacobiSVD<matrix_t> svd(cov, ComputeThinU | ComputeThinV);
 		
 		// Find rotation. 
@@ -32,6 +38,11 @@ namespace dmaps
 		matrix33_t R = svd.matrixV()*eye*svd.matrixU().transpose();
 		
 		// Return rmsd.
-		return std::sqrt((w.asDiagonal()*(xi - xj*R).array().square().matrix()).sum()/wtot);
+		return std::sqrt((ws.asDiagonal()*(xi - xj*R).array().square().matrix()).sum()/wtot);
+	}
+
+	f_type euclidean(const vector_t& ri, const vector_t& rj, const vector_t& w)
+	{
+		return std::sqrt((w.array()*(ri-rj).array().square()).sum());
 	}
 }

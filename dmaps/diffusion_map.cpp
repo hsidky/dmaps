@@ -130,14 +130,14 @@ namespace dmaps
         k_.array() *= (w_*w_.transpose()).array();
         vector_t rsum =  k_.rowwise().sum();
         k_ = rsum.asDiagonal().inverse()*k_;
-        
+
         // Define eigensolver.
         DenseSymMatProd<f_type> op(k_);
         SymEigsSolver<f_type, LARGEST_ALGE, DenseSymMatProd<f_type>> eigs(&op, n, 2*n);
         
         // Solve. 
         eigs.init();
-        eigs.compute();
+        eigs.compute(5000, 1.e-14);
         
         if(eigs.info() != SUCCESSFUL)
             throw std::runtime_error("Eigensolver did not converge.");

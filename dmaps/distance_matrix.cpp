@@ -16,18 +16,17 @@ namespace dmaps
         if(num_threads) omp_set_num_threads(num_threads);
         #endif
 
-        w_ = vector_t::Ones(x_.cols()/3);
+        w_ = vector_t::Ones(x.cols());
     }
 
     distance_matrix::distance_matrix(const matrix_t& x, const vector_t& w, int num_threads) : 
     x_(x), w_(w)
     {
-        if(x_.cols()/3 != w.size())
-            throw std::invalid_argument("Length of weights vector must match dimension of coordinates.");
-
         #ifdef _OPENMP
         if(num_threads) omp_set_num_threads(num_threads);
         #endif
+
+        if(w.size() == 0) w_ = vector_t::Ones(x.cols());
     }
 
     // Based on https://stackoverflow.com/questions/25389480    
@@ -79,7 +78,7 @@ namespace dmaps
 		return d_;
 	}
 
-	void distance_matrix::compute(const std::function<f_type(vector_t, vector_t, const vector_t&)>& dist)
+	void distance_matrix::compute(const std::function<f_type(const vector_t&, const vector_t&, const vector_t&)>& dist)
 	{
         int n = x_.rows();
         int m = n/2 - 1 + n%2;

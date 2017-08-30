@@ -29,7 +29,7 @@ namespace dmaps
 
         const matrix_t& get_distances() const;
 
-        void compute(const std::function<f_type(vector_t, vector_t, const vector_t&)>&);
+        void compute(const std::function<f_type(const vector_t&, const vector_t&, const vector_t&)>&);
 
         void save(const std::string& filename) const;
     };

@@ -41,12 +41,14 @@ PYBIND11_MODULE(dmaps, m)
         .def("sum_similarity_matrix", &diffusion_map::sum_similarity_matrix)
         .def("estimate_local_scale", &diffusion_map::estimate_local_scale,
             py::arg("k") = 0)
-        .def("compute", &diffusion_map::compute)
+        .def("compute", &diffusion_map::compute,
+            py::arg("n") = 0)
         .def("get_eigenvectors", &diffusion_map::get_eigenvectors)
         .def("get_eigenvalues", &diffusion_map::get_eigenvalues)
         .def("get_kernel_matrix", &diffusion_map::get_kernel_matrix);
 	
 	// Metrics submodule.
 	py::module m2 = m.def_submodule("metrics");
-	m2.def("rmsd", &rmsd);
+    m2.def("rmsd", &rmsd);
+    m2.def("euclidean", &euclidean);
 }
