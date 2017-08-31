@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <numeric>
 #include <Eigen/Core>
-#include <spectra/SymEigsSolver.h>
+#include <spectra/GenEigsSolver.h>
 #include "diffusion_map.h"
 #include "distance_matrix.h"
 
@@ -132,18 +132,18 @@ namespace dmaps
         k_ = rsum.asDiagonal().inverse()*k_;
 
         // Define eigensolver.
-        DenseSymMatProd<f_type> op(k_);
-        SymEigsSolver<f_type, LARGEST_ALGE, DenseSymMatProd<f_type>> eigs(&op, n, 2*n);
+        DenseGenMatProd<f_type> op(k_);
+        GenEigsSolver <f_type, LARGEST_MAGN, DenseGenMatProd<f_type>> eigs(&op, n, 2*n);
         
         // Solve. 
         eigs.init();
-        eigs.compute(5000, 1.e-14);
+        eigs.compute();
         
         if(eigs.info() != SUCCESSFUL)
             throw std::runtime_error("Eigensolver did not converge.");
         
-        dvals_ = eigs.eigenvalues();
-        dvecs_ = eigs.eigenvectors();
+        dvals_ = eigs.eigenvalues().real();
+        dvecs_ = eigs.eigenvectors().real();
     }
 
     const matrix_t& diffusion_map::get_eigenvectors() const
