@@ -15,24 +15,25 @@ using namespace Spectra;
 
 namespace dmaps
 {
-    diffusion_map::diffusion_map(const distance_matrix& dm, const vector_t& w, int num_threads) : 
-    d_(dm.get_distances()), w_(w)
-    {
-        check_params();
-        
-        #ifdef _OPENMP
-        if(num_threads) omp_set_num_threads(num_threads);
-        #endif
-    }
 
     diffusion_map::diffusion_map(const matrix_t& d, const vector_t& w, int num_threads) : 
-    d_(d), w_(w)
+    dint_(d), d_(dint_), w_(w)
     {
         check_params();
         
         #ifdef _OPENMP
         if(num_threads) omp_set_num_threads(num_threads);
         #endif     
+    }
+
+    diffusion_map::diffusion_map(const distance_matrix& dm, const vector_t& w, int num_threads) : 
+    d_(dm.get_distances()), w_(w)
+    {
+        check_params();
+
+        #ifdef _OPENMP
+        if(num_threads) omp_set_num_threads(num_threads);
+        #endif
     }
 
     void diffusion_map::check_params()

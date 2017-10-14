@@ -7,7 +7,10 @@ namespace dmaps
 {
     class diffusion_map
     {
-    private: 
+    private:
+        // Internal distance matrix in case copy is desired. 
+        const matrix_t dint_; 
+        
         // Reference to distance matrix. 
         const matrix_t& d_;
         
