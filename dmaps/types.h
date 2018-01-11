@@ -2,7 +2,7 @@
 
 #include <Eigen/Core>
 
-#define f_type double
+#define f_type float
 
 namespace dmaps
 {

@@ -36,13 +36,11 @@ PYBIND11_MODULE(dmaps, m)
             py::arg(), py::arg("weights") = vector_t(), py::arg("num_threads") = 0
         )
         .def("set_kernel_bandwidth", (void(diffusion_map::*)(f_type)) &diffusion_map::set_kernel_bandwidth)
-        .def("set_kernel_bandwidth", (void(diffusion_map::*)(const vector_t&)) &diffusion_map::set_kernel_bandwidth)
         .def("get_kernel_bandwidth", &diffusion_map::get_kernel_bandwidth)
-        .def("sum_similarity_matrix", &diffusion_map::sum_similarity_matrix)
-        .def("estimate_local_scale", &diffusion_map::estimate_local_scale,
-            py::arg("k") = 0)
+        .def("sum_similarity_matrix", &diffusion_map::sum_similarity_matrix,
+        py::arg("epsilon"), py::arg("alpha") = 1.0)
         .def("compute", &diffusion_map::compute,
-            py::arg("n") = 0)
+            py::arg("n") = 0, py::arg("alpha") = 1.0, py::arg("beta") = 0.0)
         .def("get_eigenvectors", &diffusion_map::get_eigenvectors)
         .def("get_eigenvalues", &diffusion_map::get_eigenvalues)
         .def("get_kernel_matrix", &diffusion_map::get_kernel_matrix);

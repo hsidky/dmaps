@@ -49,34 +49,25 @@ namespace dmaps
 
     void diffusion_map::set_kernel_bandwidth(f_type eps)
     {
-        set_kernel_bandwidth(std::sqrt(eps)*vector_t::Ones(w_.size()));
+        if(eps <= 0)
+            throw std::invalid_argument("Kernel bandwidth must be positive."); 
+        eps_ = eps; 
     }
 
-    void diffusion_map::set_kernel_bandwidth(const vector_t& eps)
-    {
-        if((eps.array() <= 0).any())
-            throw std::invalid_argument("Kernel bandwidth must be positive.");
-        if(eps.size() != w_.size())
-            throw std::invalid_argument("Kernel bandwidth length must match distance matrix size.");
-        
-        eps_ = eps;
-    }
-
-    const vector_t& diffusion_map::get_kernel_bandwidth() const
+    f_type diffusion_map::get_kernel_bandwidth() const
     {
         return eps_;
     }
 
-    f_type diffusion_map::sum_similarity_matrix(f_type eps) const
+    f_type diffusion_map::sum_similarity_matrix(f_type eps, f_type alpha) const
     {
         matrix_t wwt = w_*w_.transpose();
-        return ((-0.5/eps*d_.array().square()).exp()*wwt.array()).sum();
+        return ((-0.5/eps*d_.array().square().pow(alpha)).exp()*wwt.array()).sum();
     }
 
+    /*
     void diffusion_map::estimate_local_scale(int k)
     {
-        eps_ = vector_t::Ones(d_.rows());
-
         // Default choice of k.
         if(k == 0) k = static_cast<int>(std::sqrt(d_.rows()));
 
@@ -117,20 +108,29 @@ namespace dmaps
             }
         }
     }
+    */
 
-    void diffusion_map::compute(int n)
+    void diffusion_map::compute(int n, f_type alpha, f_type beta)
     {
-        if(eps_.size() == 0)
+        if(eps_ == 0)
             throw std::runtime_error("Kernel bandwidth must be defined before computing diffusion coordinates.");
+        
+        if(alpha <= 0 || alpha > 1)
+            throw std::invalid_argument("Distance scaling must be in the interval (0,1].");
         
         // Compute similarity matrix and row normalize
         // to get right stochastic matrix.
-        k_ = -0.5*d_.cwiseProduct(d_);
-        k_.array() /= (eps_*eps_.transpose()).array();
+        k_ = -0.5/eps_*d_.array().square().pow(alpha);
         k_.array() = k_.array().exp();
         k_.array() *= (w_*w_.transpose()).array();
-        vector_t rsum =  k_.rowwise().sum();
-        k_ = rsum.asDiagonal().inverse()*k_;
+
+        // Density normalization.
+        vector_t rsum =  k_.rowwise().sum().array().pow(-beta);
+        k_ = rsum.asDiagonal()*k_*rsum.asDiagonal();
+
+        // Right stochastic matrix. 
+        rsum =  k_.rowwise().sum().array().cwiseInverse();
+        k_ = rsum.asDiagonal()*k_;
 
         // Define eigensolver.
         DenseGenMatProd<f_type> op(k_);

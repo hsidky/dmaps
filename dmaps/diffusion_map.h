@@ -27,7 +27,7 @@ namespace dmaps
         matrixc_t k_; 
 
         // Kernel bandwidth(s).
-        vector_t eps_;
+        f_type eps_;
 
         void check_params();
     
@@ -36,13 +36,11 @@ namespace dmaps
         diffusion_map(const class distance_matrix& dm, const vector_t& w, int num_threads = 0);
         
         void set_kernel_bandwidth(f_type eps); 
-        void set_kernel_bandwidth(const vector_t& eps); 
-        const vector_t& get_kernel_bandwidth() const;
+        f_type get_kernel_bandwidth() const;
 
-        f_type sum_similarity_matrix(f_type eps) const;
-        void estimate_local_scale(int k = 0);
+        f_type sum_similarity_matrix(f_type eps, f_type alpha) const;
 
-        void compute(int n);
+        void compute(int n, f_type alpha, f_type beta);
 
         const matrix_t& get_eigenvectors() const;
         const vector_t& get_eigenvalues() const;
