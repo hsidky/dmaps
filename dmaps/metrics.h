@@ -4,7 +4,7 @@
 
 namespace dmaps
 {
-    f_type rmsd(const vector_t& ri, const vector_t& rj, const vector_t& w);
-
-    f_type euclidean(const vector_t& ri, const vector_t& rj, const vector_t& w);
+    f_type rmsd(const vector_t&, const vector_t&, const vector_t&);
+    f_type euclidean(const vector_t&, const vector_t&, const vector_t&);
+    f_type contact_map(const vector_t&, const vector_t&, const vector_t&);
 }
