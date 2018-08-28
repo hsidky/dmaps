@@ -120,7 +120,19 @@ namespace dmaps
             }
         #endif
     }
-    
+
+    vector_t distance_matrix::compute(const vector_t& coor, const std::function<f_type(const vector_t&, const vector_t&, const vector_t&)>& dist)
+    {
+        int n = x_.rows();
+        vector_t result = vector_t::Zero(n);
+
+        #pragma omp parallel for schedule(static)
+        for(int i = 0; i < n; ++i)
+            result[i] = dist(coor, x_.row(i), w_);
+        
+        return result;
+    }
+
     // Based on https://stackoverflow.com/questions/25389480
     void distance_matrix::save(const std::string& filename) const
     {

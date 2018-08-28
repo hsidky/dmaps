@@ -147,6 +147,23 @@ namespace dmaps
         dvecs_ = eigs.eigenvectors().real();
     }
 
+    vector_t diffusion_map::nystrom(const vector_t& distances, f_type alpha, f_type beta)
+    {
+        if(dvals_.size() == 0)
+            throw std::runtime_error("Eigenvectors must be computed first.");
+        
+        vector_t k = -0.5/eps_*distances.array().square().pow(alpha);
+        k.array() = k.array().exp();
+        k /= k.sum();
+
+        vector_t point(dvals_.size());
+
+        for(int i = 0; i < dvals_.size(); ++i)
+            point[i] = 1./dvals_[i]*(k.array()*dvecs_.col(i).array()).sum();
+        
+        return point;
+    }
+
     const matrix_t& diffusion_map::get_eigenvectors() const
     {
         return dvecs_;

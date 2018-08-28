@@ -40,6 +40,8 @@ namespace dmaps
 
         f_type sum_similarity_matrix(f_type eps, f_type alpha) const;
 
+        vector_t nystrom(const vector_t& distances, f_type alpha, f_type beta);
+
         void compute(int n, f_type alpha, f_type beta);
 
         const matrix_t& get_eigenvectors() const;

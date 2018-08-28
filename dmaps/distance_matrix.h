@@ -31,6 +31,8 @@ namespace dmaps
 
         void compute(const std::function<f_type(const vector_t&, const vector_t&, const vector_t&)>&);
 
+        vector_t compute(const vector_t& coor, const std::function<f_type(const vector_t&, const vector_t&, const vector_t&)>&);
+
         void save(const std::string& filename) const;
     };
 }

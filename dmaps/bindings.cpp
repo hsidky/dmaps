@@ -22,8 +22,12 @@ PYBIND11_MODULE(dmaps, m)
 		)
 		.def("get_coordinates", &distance_matrix::get_coordinates)
 		.def("get_distances", &distance_matrix::get_distances)
-		.def("compute", &distance_matrix::compute,
+		.def("compute", (void(distance_matrix::*)(const std::function<f_type(const vector_t&, const vector_t&, const vector_t&)>&)) &distance_matrix::compute,
 			py::arg("metric") = py::cpp_function(&rmsd)
+		)
+        .def("compute_single", (vector_t(distance_matrix::*)(const vector_t&, const std::function<f_type(const vector_t&, const vector_t&, const vector_t&)>&)) &distance_matrix::compute,
+			py::arg("coordinate"),
+            py::arg("metric") = py::cpp_function(&rmsd)
 		)
 		.def("save", &distance_matrix::save);
 	
@@ -43,10 +47,13 @@ PYBIND11_MODULE(dmaps, m)
             py::arg("n") = 0, py::arg("alpha") = 1.0, py::arg("beta") = 0.0)
         .def("get_eigenvectors", &diffusion_map::get_eigenvectors)
         .def("get_eigenvalues", &diffusion_map::get_eigenvalues)
+        .def("nystrom", &diffusion_map::nystrom, 
+            py::arg("distances"), py::arg("alpha") = 1.0, py::arg("beta") = 0.0)
         .def("get_kernel_matrix", &diffusion_map::get_kernel_matrix);
 	
 	// Metrics submodule.
 	py::module m2 = m.def_submodule("metrics");
     m2.def("rmsd", &rmsd);
     m2.def("euclidean", &euclidean);
+    m2.def("contact_map", &contact_map);
 }
